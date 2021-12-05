@@ -1,0 +1,29 @@
+// C++ code
+//Declare the LEDs
+int redLed=4;
+int yellowLed=7;
+int greenLed=2;
+
+
+void setup()
+{
+  pinMode(7, OUTPUT);
+  pinMode(4, OUTPUT);
+  pinMode(2, OUTPUT);
+}
+
+void loop()
+{
+  digitalWrite(7, LOW);
+  digitalWrite(4, HIGH);
+  digitalWrite(2, LOW);
+  delay(20000); // Wait for 20000 millisecond(s)
+  digitalWrite(7, HIGH);
+  digitalWrite(4, LOW);
+  digitalWrite(2, LOW);
+  delay(20000); // Wait for 20000 millisecond(s)
+  digitalWrite(7, LOW);
+  digitalWrite(4, LOW);
+  digitalWrite(2, HIGH);
+  delay(20000); // Wait for 20000 millisecond(s)
+}
