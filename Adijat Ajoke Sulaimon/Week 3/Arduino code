@@ -17,7 +17,6 @@ void setup()
   pinMode(yellowLed, OUTPUT);
   pinMode(redLed, OUTPUT);
   
-  
   pinMode(PedgreenLed, OUTPUT);
   pinMode(PedredLed, OUTPUT);
  
@@ -29,37 +28,38 @@ void loop()
 {
   buttonstate = digitalRead(button);
   
-  if(buttonstate==HIGH) 
+  if(buttonstate==1) 
   {
-  delay(3000); // Wait for 10000 millisecond(s)
+  delay(3000); // Wait for 3000 millisecond(s)
     
   digitalWrite(greenLed, HIGH);
   digitalWrite(yellowLed, LOW);
   digitalWrite(redLed, LOW);
     
   digitalWrite(PedgreenLed, HIGH);
-  delay(10000); // Wait for 10000 millisecond(s)
+  delay(1000); // Wait for 10000 millisecond(s)
     
   digitalWrite(yellowLed, HIGH);
   digitalWrite(redLed, LOW);
   digitalWrite(greenLed, LOW);
-  delay(5000); // Wait for 10000 millisecond(s)
+  delay(5000); // Wait for 5000 millisecond(s)
     
   }
-  else (buttonstate==1); {
+  else (buttonstate==0);
+  {
   
   digitalWrite(PedredLed, HIGH);
     
   digitalWrite(greenLed, LOW);
   digitalWrite(yellowLed, LOW);
   digitalWrite(redLed, HIGH);
-  delay(2000); // Wait for 20000 millisecond(s)
+  delay(2000); // Wait for 2000 millisecond(s)
     
   digitalWrite(greenLed, LOW);
   digitalWrite(yellowLed, LOW);
   digitalWrite(redLed, HIGH);
   Serial.println("PEDESTRIAN CROSSING");
-  delay(5000); // Wait for 20000 millisecond(s)
+  delay(5000); // Wait for 5000 millisecond(s)
   }
   
   
