@@ -1,0 +1,193 @@
+enum class trafStates : int
+{
+    roadGo =0 ,             //Normal road green state - wait for button
+    waitRoadyellow,          //Wait road green, then turn yellow, then next
+    roadyellow,              //Wait yellow, then red
+    roadRedToCross,         //Wait red, then ped green
+    pedGreen,               //Wait ped green, then flash ped green
+    pedFlashGreen,          //Flash ped green, then ped red
+    pedRed,                 //Wait ped red, then road yellow
+    roadyellowToGreen        //Wait road yellow, then road green
+   
+
+};
+
+const byte buttonPin = 3;
+const byte pedRed= 5;
+const byte pedGreen = 6;
+const byte roadRed= 9;
+const byte roadyellow= 8;
+const byte roadGreen= 7;
+
+
+const int waitRoadyellowTime = 1000;
+const int roadyellowTime = 4000;
+const int roadRedToCrossTime = 3000;
+const int pedGreenTime = 2000;
+const int pedRedTime = 2000;
+const int pedGreenFlashLimit = 20;
+const int pedGreenFlashTime = 100;
+const int roadyellowToGreenTime = 5000;
+
+
+
+
+void setupPins()
+{
+    pinMode(buttonPin, INPUT_PULLUP);
+    pinMode(pedRed, OUTPUT);
+    pinMode(pedGreen, OUTPUT);
+    pinMode(roadRed, OUTPUT);
+    pinMode(roadyellow, OUTPUT);
+    pinMode(roadGreen, OUTPUT);
+}
+
+void setup() 
+{
+    setupPins();
+    Serial.begin(115200);
+    digitalWrite(roadGreen, HIGH);
+    digitalWrite(pedRed, HIGH);
+   int flashLeds();
+   pinMode(LED_BUILTIN, OUTPUT);
+}
+
+int lastSwitchTime = 0;
+int nextSwitchInterval = 0;
+int flashCount = 0;
+trafStates state = trafStates::roadGo;
+bool g_crossRqsted = false;
+
+void runSwitchCase(int timeMs, bool bCrossRqst)
+{
+  //    trafStates newState = state;
+
+    switch (state)
+    {
+        case trafStates::roadGo:
+        {   //If cross requested, go to next
+            g_crossRqsted |= bCrossRqst;
+            if (g_crossRqsted && 
+                ((timeMs - lastSwitchTime) >= nextSwitchInterval))
+            {
+                g_crossRqsted = false;
+                state = trafStates::waitRoadyellow;
+                nextSwitchInterval = waitRoadyellowTime;
+                lastSwitchTime = timeMs;
+            }
+            break;
+        }
+        case trafStates::waitRoadyellow:
+        {
+            if ((timeMs - lastSwitchTime) >= nextSwitchInterval)
+            {
+                digitalWrite(roadGreen, LOW);
+                digitalWrite(roadyellow, HIGH);
+                nextSwitchInterval = roadyellowTime;
+                state = trafStates::roadyellow;
+                lastSwitchTime = timeMs;
+            }
+            break;
+        }
+        case trafStates::roadyellow:
+        {
+            if ((timeMs - lastSwitchTime) >= nextSwitchInterval)
+            {
+                digitalWrite(roadyellow, LOW);
+                digitalWrite(roadRed, HIGH);
+                nextSwitchInterval = pedGreenTime;
+                state = trafStates::roadRedToCross;
+                lastSwitchTime = timeMs;
+            }
+            break;
+        }
+        case trafStates::roadRedToCross:
+        {
+            if ((timeMs - lastSwitchTime) >= nextSwitchInterval)
+            {
+                digitalWrite(pedRed, LOW);
+                digitalWrite(pedGreen, HIGH);
+                nextSwitchInterval = pedGreenTime;
+                state = trafStates::pedGreen;
+                lastSwitchTime = timeMs;
+            }
+            break;
+        }
+        case trafStates::pedGreen:
+        {
+            if ((timeMs - lastSwitchTime) >= nextSwitchInterval)
+            {
+                nextSwitchInterval = pedGreenFlashTime;
+                state = trafStates::pedFlashGreen;
+                lastSwitchTime = timeMs;
+                flashCount = 0;
+            }
+            g_crossRqsted |= bCrossRqst;
+            break;
+        }
+        case trafStates::pedFlashGreen:
+        {
+            if ((timeMs - lastSwitchTime) >= nextSwitchInterval)
+            {
+                digitalWrite(pedGreen, flashCount++ & 0x01);
+                nextSwitchInterval = pedGreenFlashTime;
+                lastSwitchTime = timeMs;
+                if (pedGreenFlashLimit <= flashCount)
+                {
+                    state = trafStates::pedRed;
+                    digitalWrite(pedGreen, LOW);
+                    digitalWrite(pedRed, HIGH);
+                    nextSwitchInterval = pedRedTime;
+                    lastSwitchTime = timeMs;
+                }
+            }
+            g_crossRqsted |= bCrossRqst;
+            break;
+        }
+        case trafStates::pedRed:
+        {
+            if ((timeMs - lastSwitchTime) >= nextSwitchInterval)
+            {
+                digitalWrite(roadyellow, HIGH);
+                digitalWrite(roadRed, LOW);
+                nextSwitchInterval = waitRoadyellowTime;
+                state = trafStates::roadyellowToGreen;
+                lastSwitchTime = timeMs;
+            }
+            g_crossRqsted |= bCrossRqst;
+            break;
+        }
+        case trafStates::roadyellowToGreen:
+        {
+            g_crossRqsted |= bCrossRqst;
+            if ((timeMs - lastSwitchTime) >= nextSwitchInterval)
+            {
+                digitalWrite(roadyellow, LOW);
+                digitalWrite(roadGreen, HIGH);
+                state = trafStates::roadGo;
+                nextSwitchInterval = roadyellowToGreenTime;
+                lastSwitchTime = timeMs;
+            }
+            break;
+        }
+        default: state = trafStates::roadGo;
+    }
+}
+
+bool lastButtState = false;
+void loop() 
+{
+    int timeMs = millis();
+    bool nowButtState = digitalRead(buttonPin);
+    bool bCross = false;
+    if (nowButtState != lastButtState)
+    {
+        lastButtState = nowButtState;
+        Serial.print(timeMs);
+        Serial.print(" Button ON: ");
+        Serial.println(nowButtState?"not pressed":"pressed");
+        if (!nowButtState)  bCross = true;
+    }
+    runSwitchCase(timeMs, bCross);
+}
+  
