@@ -1,0 +1,67 @@
+// C++ code
+//Declare the LEDs
+int redLed = 7;
+int yellowLed = 4;
+int greenLed = 2;
+
+int PedredLed=13;
+int PedgreenLed=8;
+ 
+int button=12;
+int buttonstate=0;
+
+  
+void setup()
+{
+  pinMode(greenLed, OUTPUT);
+  pinMode(yellowLed, OUTPUT);
+  pinMode(redLed, OUTPUT);
+  
+  
+  pinMode(PedgreenLed, OUTPUT);
+  pinMode(PedredLed, OUTPUT);
+ 
+  pinMode(button, INPUT);
+  
+}
+
+void loop()
+{
+  buttonstate = digitalRead(button);
+  
+  if(buttonstate==HIGH) 
+  {
+  delay(3000); // Wait for 10000 millisecond(s)
+    
+  digitalWrite(greenLed, HIGH);
+  digitalWrite(yellowLed, LOW);
+  digitalWrite(redLed, LOW);
+    
+  digitalWrite(PedgreenLed, HIGH);
+  delay(10000); // Wait for 10000 millisecond(s)
+    
+  digitalWrite(yellowLed, HIGH);
+  digitalWrite(redLed, LOW);
+  digitalWrite(greenLed, LOW);
+  delay(5000); // Wait for 10000 millisecond(s)
+    
+  }
+  else (buttonstate==1); {
+  
+  digitalWrite(PedredLed, HIGH);
+    
+  digitalWrite(greenLed, LOW);
+  digitalWrite(yellowLed, LOW);
+  digitalWrite(redLed, HIGH);
+  delay(2000); // Wait for 20000 millisecond(s)
+    
+  digitalWrite(greenLed, LOW);
+  digitalWrite(yellowLed, LOW);
+  digitalWrite(redLed, HIGH);
+  Serial.println("PEDESTRIAN CROSSING");
+  delay(5000); // Wait for 20000 millisecond(s)
+  }
+  
+  
+  
+}
