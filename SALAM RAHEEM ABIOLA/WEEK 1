@@ -1,1 +1,57 @@
+// C++ code
+//
+//Switch Variables:
+int state_s1 = 0;
+int state_prev_s1 = 0;
+int pin_s1 = 8;
+int pin_s2 = 9;
+int pin_s3 = 10;
 
+
+void setup()
+{
+  pinMode(8, OUTPUT);
+  pinMode(9, OUTPUT);
+  pinMode(10, OUTPUT);
+}
+
+void loop() {
+  
+  SM_s1();
+}
+
+void SM_s1() {
+  //Almost every state needs these lines, so I'll put it outside the State Machine
+  state_prev_s1 = state_s1;
+
+  //State Machine Section
+  switch (state_s1) {
+    case 0: // GREEN_STATE
+      
+     digitalWrite(8, HIGH);
+     digitalWrite(9, LOW);
+     digitalWrite(10, LOW);
+     delay(5000); // Wait for 5000 millisecond(s)  
+    state_s1 = 1;
+    break;
+
+    case 1: //YELLOW_STATE
+     digitalWrite(8, LOW);
+     digitalWrite(9, HIGH);
+     digitalWrite(10, LOW);
+     ;delay(5000); // Wait for 5000 millisecond(s)
+     {state_s1 = 2;} 
+    break;
+
+    case 2: //RED_STATE
+      digitalWrite(8, LOW);
+      digitalWrite(9, LOW);
+      digitalWrite(10, HIGH);
+      delay(5000); // Wait for 5000 millisecond(s)
+      
+ {state_s1 = 0;}
+    
+
+    }
+  
+}
