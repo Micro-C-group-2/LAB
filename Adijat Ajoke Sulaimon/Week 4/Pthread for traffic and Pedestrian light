@@ -1,0 +1,71 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <pthread.h>
+
+#define true 100
+#define false 200
+
+#define GREENTOYELLOW 1
+#define YELLOWTORED 2
+#define REDTOYELLOW 3
+#define YELLOWTOGREEN 4
+
+#define GREEN 10
+#define YELLOW 11
+#define RED 12
+
+int trafficLightStatus = GREENTOYELLOW;
+
+void* traffic_light(void* threadid_)
+{
+    char* threadid;
+    threadid = (char*)threadid_;
+    printf("running traffic %s\n", threadid);
+    sleep(3);
+}
+
+void* pedestrian_light(void* threadid_)
+{
+    char* threadid;
+    threadid = (char*)threadid_;
+    printf("running pedestrian %s\n", threadid);
+}
+
+
+int main ()
+{
+    while(1){
+        pthread_t traffic, pedestrian;
+    switch (trafficLightStatus)
+    {
+    case GREENTOYELLOW:
+        pthread_create(&traffic, NULL, &traffic_light, (void*) "Yellow");
+        pthread_join(traffic, NULL);
+        trafficLightStatus = YELLOWTORED;
+        break;
+    case YELLOWTORED:
+        pthread_create(&traffic, NULL, &traffic_light, (void*) "RED");
+        pthread_create(&pedestrian, NULL, &pedestrian_light, (void*) "GREEN");
+        pthread_join(traffic, NULL);
+        pthread_join(pedestrian, NULL);
+        trafficLightStatus = REDTOYELLOW;
+        break;
+    case REDTOYELLOW:
+        pthread_create(&traffic, NULL, &traffic_light, (void*) "YELLOW");
+        pthread_create(&pedestrian, NULL, &pedestrian_light, (void*) "RED");
+        pthread_join(traffic, NULL);
+        pthread_join(pedestrian, NULL);
+        trafficLightStatus = YELLOWTOGREEN;
+        break;
+    case YELLOWTOGREEN:
+        pthread_create(&traffic, NULL, &traffic_light, (void*) "GREEN");
+        pthread_join(traffic, NULL);
+        trafficLightStatus = GREENTOYELLOW;
+        break;
+    default:
+        break;
+    }
+    printf("status: %d\n", trafficLightStatus);
+    }    
+    return 0;
+}
