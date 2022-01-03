@@ -1,0 +1,70 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+/* setting up the Pin names and pin number on Arduino*/
+#define     CTL_GREEN 7 
+#define     CTL_YELLOW1 6
+#define     CTL_YELLOW2 8
+#define 	  CTL_RED 9
+
+
+int CTL_state = CTL_GREEN; //initializing and setting up first state for CTL//
+
+
+void setup()
+            {
+              pinMode(CTL_GREEN, OUTPUT);
+              pinMode(CTL_YELLOW1, OUTPUT);
+              pinMode(CTL_YELLOW2, OUTPUT);
+              pinMode(CTL_RED, OUTPUT);
+            }
+
+void loop()
+{
+              switch(CTL_state)
+    {
+        case CTL_GREEN: 
+            digitalWrite(CTL_GREEN, HIGH);
+            digitalWrite(CTL_YELLOW1, LOW);
+    		digitalWrite(CTL_YELLOW2, LOW);
+            digitalWrite(CTL_RED, LOW);
+    
+            delay(20000); // Wait for 20000 millisecond(s)
+    CTL_state = CTL_YELLOW1;
+          	break;
+            
+        case CTL_YELLOW1:
+            digitalWrite(CTL_GREEN, LOW);
+            digitalWrite(CTL_YELLOW1, HIGH);
+    		digitalWrite(CTL_YELLOW2, LOW);
+            digitalWrite(CTL_RED, LOW);
+    
+            delay(5000); // Wait for 5000 millisecond(s)
+    CTL_state = CTL_RED;
+    		break;
+            
+            
+        case CTL_RED:
+            digitalWrite(CTL_GREEN, LOW);
+            digitalWrite(CTL_YELLOW1, LOW);
+    		digitalWrite(CTL_YELLOW2, LOW);
+            digitalWrite(CTL_RED, HIGH);
+
+            delay(20000); // Wait for 20000 millisecond(s)
+    CTL_state = CTL_YELLOW2;
+    		break;
+            
+               
+            
+        case CTL_YELLOW2:
+            digitalWrite(CTL_GREEN, LOW);
+    		digitalWrite(CTL_YELLOW1, LOW);
+            digitalWrite(CTL_YELLOW2, HIGH);
+            digitalWrite(CTL_RED, LOW);
+
+            delay(5000); // Wait for 5000 millisecond(s)
+    CTL_state = CTL_GREEN;
+    		break;
+
+    }
+}
