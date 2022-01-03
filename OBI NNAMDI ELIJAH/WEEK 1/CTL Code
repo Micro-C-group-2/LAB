@@ -8,7 +8,7 @@
 #define 	  CTL_RED 9
 
 
-int CTL_state = CTL_GREEN; //initializing and setting up first state for CTL//
+int CTL_state = CTL_GREEN; //initializing and setting up first state for CTL
 
 
 void setup()
