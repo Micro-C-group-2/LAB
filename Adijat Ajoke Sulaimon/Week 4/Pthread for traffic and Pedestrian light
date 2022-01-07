@@ -1,71 +1,128 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <pthread.h>
+// C++ code
+#define TRAFFIC_GREEN 8
+#define TRAFFIC_YELLOW 9
+#define TRAFFIC_RED 10
 
-#define true 100
-#define false 200
+#define PED_GREEN 6
+#define PED_RED 7
 
-#define GREENTOYELLOW 1
-#define YELLOWTORED 2
-#define REDTOYELLOW 3
-#define YELLOWTOGREEN 4
+#define BUTTON 2
 
-#define GREEN 10
-#define YELLOW 11
-#define RED 12
+#define WHITE_BTN 11
 
-int trafficLightStatus = GREENTOYELLOW;
+enum traffic_light_status
+{green, orange, red, yellow};
 
-void* traffic_light(void* threadid_)
+traffic_light_status status = green;
+
+bool button_pressed = false;
+
+unsigned long time1 = 0;
+unsigned long time2 = 0;
+
+void setup()
 {
-    char* threadid;
-    threadid = (char*)threadid_;
-    printf("running traffic %s\n", threadid);
-    sleep(3);
+  Serial.begin(9600);
+  
+  pinMode(TRAFFIC_GREEN, OUTPUT);
+  pinMode(TRAFFIC_YELLOW, OUTPUT);
+  pinMode(TRAFFIC_RED, OUTPUT);
+  pinMode(PED_GREEN, OUTPUT);
+  pinMode(PED_RED, OUTPUT);
+  pinMode(WHITE_BTN, OUTPUT);
+  pinMode(BUTTON, INPUT);
+  
+  attachInterrupt(digitalPinToInterrupt(BUTTON), button_press, RISING);
 }
 
-void* pedestrian_light(void* threadid_)
+void button_press()
 {
-    char* threadid;
-    threadid = (char*)threadid_;
-    printf("running pedestrian %s\n", threadid);
+  if(status == green || status == orange)
+  {
+      digitalWrite(WHITE_BTN, HIGH);
+      button_pressed = true;
+  }	
 }
 
-
-int main ()
+void traffic_red_state()
 {
-    while(1){
-        pthread_t traffic, pedestrian;
-    switch (trafficLightStatus)
+    digitalWrite(TRAFFIC_GREEN, LOW);
+    digitalWrite(TRAFFIC_RED, HIGH);
+    digitalWrite(TRAFFIC_YELLOW, LOW);
+    digitalWrite(PED_GREEN, HIGH);
+    digitalWrite(PED_RED, LOW);
+    delay(10000);
+    digitalWrite(WHITE_BTN, LOW);
+    button_pressed = false;
+    status = orange;
+}
+
+void traffic_yellow_state()
+{
+    digitalWrite(TRAFFIC_GREEN, LOW);
+    digitalWrite(TRAFFIC_RED, LOW);
+    digitalWrite(TRAFFIC_YELLOW, HIGH);
+    digitalWrite(PED_GREEN, LOW);
+    digitalWrite(PED_RED, HIGH);
+    delay(2000);
+    digitalWrite(WHITE_BTN, LOW);
+    button_pressed = false;
+    status = red;
+}
+
+void traffic_green_state()
+{
+    digitalWrite(TRAFFIC_GREEN, HIGH);
+    digitalWrite(TRAFFIC_RED, LOW);
+    digitalWrite(TRAFFIC_YELLOW, LOW);
+    digitalWrite(PED_GREEN, LOW);
+    digitalWrite(PED_RED, HIGH);
+    time1 = millis();
+    time2 = millis();
+    unsigned long elpased_time = (time2 - time1);
+    bool change = false;
+    while(!change)
     {
-    case GREENTOYELLOW:
-        pthread_create(&traffic, NULL, &traffic_light, (void*) "Yellow");
-        pthread_join(traffic, NULL);
-        trafficLightStatus = YELLOWTORED;
+        if(elpased_time > 10000 || button_pressed)
+            change = true;
+      time2 = millis();
+      elpased_time = (time2 - time1);
+    }
+    //check button
+    digitalWrite(WHITE_BTN, LOW);
+    button_pressed = false;
+    status = yellow;
+}
+
+void traffic_orange_state()
+{
+    digitalWrite(TRAFFIC_GREEN, LOW);
+    digitalWrite(TRAFFIC_RED, HIGH);
+    digitalWrite(TRAFFIC_YELLOW, HIGH);
+    digitalWrite(PED_GREEN, LOW);
+    digitalWrite(PED_RED, HIGH);
+    delay(2000);
+    digitalWrite(WHITE_BTN, LOW);
+    status = green;
+}
+
+void loop()
+{
+    switch (status)
+    {
+    case green:
+        traffic_green_state();
         break;
-    case YELLOWTORED:
-        pthread_create(&traffic, NULL, &traffic_light, (void*) "RED");
-        pthread_create(&pedestrian, NULL, &pedestrian_light, (void*) "GREEN");
-        pthread_join(traffic, NULL);
-        pthread_join(pedestrian, NULL);
-        trafficLightStatus = REDTOYELLOW;
+    case yellow:
+        traffic_yellow_state();
         break;
-    case REDTOYELLOW:
-        pthread_create(&traffic, NULL, &traffic_light, (void*) "YELLOW");
-        pthread_create(&pedestrian, NULL, &pedestrian_light, (void*) "RED");
-        pthread_join(traffic, NULL);
-        pthread_join(pedestrian, NULL);
-        trafficLightStatus = YELLOWTOGREEN;
+    case red:
+        traffic_red_state();
         break;
-    case YELLOWTOGREEN:
-        pthread_create(&traffic, NULL, &traffic_light, (void*) "GREEN");
-        pthread_join(traffic, NULL);
-        trafficLightStatus = GREENTOYELLOW;
+    case orange:
+        traffic_orange_state();
         break;
     default:
         break;
-    }
-    printf("status: %d\n", trafficLightStatus);
-    }    
-    return 0;
+    } 
 }
