@@ -1,0 +1,79 @@
+#define     PTL_GREEN 9
+#define     PTL_RED 10
+#define     PedButton 2
+#define 	WAITING 0
+
+int PTL_state = PTL_RED; //  Initializing a variable for state switch in CTL
+volatile int Pb_Event = 0; /*Initializing Trigger where Pb is Pressed Button*/
+
+
+void setup()
+{
+              pinMode(PTL_RED, OUTPUT);
+              pinMode(PTL_GREEN, OUTPUT);
+              pinMode(PedButton, INPUT);
+  
+              //Setting all PTL pins to Low
+                digitalWrite(PTL_RED, LOW);
+                digitalWrite(PTL_GREEN, LOW);
+  
+  attachInterrupt(digitalPinToInterrupt(PedButton), triggerISR, RISING);
+}
+
+void loop()
+{
+  PTL();
+}
+
+
+void PTL()
+{
+    switch(PTL_state)
+    {
+    case PTL_RED:
+          delay(20);/*This very short delay is added to help the simulation software
+      			transition effortlessly*/
+                //CODE FOR WHAT IT DOES
+            digitalWrite(PTL_RED, HIGH);
+            digitalWrite(PTL_GREEN, LOW);
+            
+        if(Pb_Event == 1) //CHECK FOR IF PedButton has been pushed
+            {
+                 //Change state of PTL to WAITING
+            PTL_state = WAITING;
+            }
+       break;
+
+            
+    case WAITING:
+          delay(20);/*This very short delay is added to help the simulation software
+      			transition effortlessly*/
+            digitalWrite(PTL_RED, HIGH);
+            digitalWrite(PTL_GREEN, LOW);
+        if(Pb_Event == 1) //REMEMBER TO CHANGE THIS LINE OF CODE TO: Check if CTL_state is in CTL_RED case 
+        {
+           //change state of PTL to PTL_GREEN
+             PTL_state = PTL_GREEN;
+        }
+      break;
+
+            
+    case PTL_GREEN:
+          delay(20);/*This very short delay is added to help the simulation software
+      			transition effortlessly*/
+        //CODE FOR WHAT IT DOES
+            digitalWrite(PTL_RED, LOW);
+            digitalWrite(PTL_GREEN, HIGH);
+            delay(20000);
+            Pb_Event=0;
+             PTL_state = PTL_RED;
+      break;
+
+    }
+}
+
+ void triggerISR()
+    {
+      Pb_Event=1;  
+    }
+
