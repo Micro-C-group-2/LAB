@@ -1,0 +1,124 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+/* setting up the Pin names and pin number on Arduino*/
+#define     CTL_GREEN 7 
+#define     CTL_YELLOW1 13
+#define     CTL_YELLOW2 8
+#define 	CTL_RED 9
+    
+int CTL_state = CTL_GREEN;
+
+// will store last time global state variable was updated
+unsigned long CTL_GREEN_ENTRYMillis = 0;  
+unsigned long CTL_YELLOW1_ENTRYMillis = 0;
+unsigned long CTL_YELLOW2_ENTRYMillis = 0;
+unsigned long CTL_RED_ENTRYMillis = 0;
+
+volatile int Pb_Event = 0; /*Initializing a point to store the state of the Button*/
+
+// interval at which to change state (milliseconds)
+// constants won't change:
+const long Interval20Sec = 20000;           
+const long Interval10Sec = 10000;
+const long Interval5Sec = 5000;
+
+            void setup()
+            {
+              pinMode(CTL_GREEN, OUTPUT);
+              pinMode(CTL_YELLOW1, OUTPUT);
+              pinMode(CTL_YELLOW2, OUTPUT);
+              pinMode(CTL_RED, OUTPUT);
+              pinMode(PTL_RED, OUTPUT);
+              pinMode(PTL_GREEN, OUTPUT);
+              pinMode(Pb, INPUT);
+              
+            digitalWrite(CTL_GREEN, LOW);
+            digitalWrite(CTL_YELLOW1, LOW);
+    		    digitalWrite(CTL_YELLOW2, LOW);
+            digitalWrite(CTL_RED, LOW);
+            }
+
+
+void loop()
+{
+	CTL();
+}
+
+
+
+
+void CTL()
+{
+  unsigned long currentMillis = millis();
+  
+  switch(CTL_state)
+      
+    {
+ 
+ 	  case CTL_GREEN: 
+
+      		  digitalWrite(CTL_GREEN, HIGH);
+            digitalWrite(CTL_YELLOW1, LOW);
+    		    digitalWrite(CTL_YELLOW2, LOW);
+            digitalWrite(CTL_RED, LOW);
+            
+    if ((currentMillis - CTL_GREEN_ENTRYMillis >= Interval10Sec) && (Pb_Event == 1)) // Wait for 20000 millisecond(s)  
+    {	 
+      CTL_state = CTL_YELLOW1;// Change the state of CTL to enter next case
+   	  CTL_YELLOW1_ENTRYMillis = millis();
+    }	
+    
+   else if ((currentMillis - CTL_GREEN_ENTRYMillis >= Interval20Sec)&&(Pb_Event == 0)) // Wait for 20000 millisecond(s)  
+   {	 
+      CTL_state = CTL_YELLOW1;// Change the state of CTL to enter next case
+   	  CTL_YELLOW1_ENTRYMillis = millis();
+   }		
+     break;
+            
+                  
+       case CTL_YELLOW1:
+    
+            digitalWrite(CTL_GREEN, LOW);
+            digitalWrite(CTL_YELLOW1, HIGH);
+    		    digitalWrite(CTL_YELLOW2, LOW);
+            digitalWrite(CTL_RED, LOW);
+ 
+            if ((currentMillis - CTL_YELLOW1_ENTRYMillis >= Interval10Sec))// Wait for 10000 millisecond(s)
+            {
+              CTL_state = CTL_RED; // Change the state of CTL to enter next case
+              CTL_RED_ENTRYMillis = millis();
+            }
+     break;
+            
+    
+        case CTL_RED:
+   
+            digitalWrite(CTL_GREEN, LOW);
+            digitalWrite(CTL_YELLOW1, LOW);
+    		    digitalWrite(CTL_YELLOW2, LOW);
+            digitalWrite(CTL_RED, HIGH);
+    
+            if ((currentMillis - CTL_RED_ENTRYMillis >= Interval20Sec))// Wait for 20000 millisecond(s)
+            {
+              CTL_state = CTL_YELLOW2;// Change the state of CTL to enter next case
+              CTL_YELLOW2_ENTRYMillis = millis();
+            }
+     break;
+
+            
+        case CTL_YELLOW2:
+            digitalWrite(CTL_GREEN, LOW);
+    		    digitalWrite(CTL_YELLOW1, LOW);
+            digitalWrite(CTL_YELLOW2, HIGH);
+            digitalWrite(CTL_RED, LOW);
+    
+          if ((currentMillis - CTL_YELLOW2_ENTRYMillis >= Interval10Sec) && (Pb_Event == 0)) // Wait for 10000 millisecond(s)
+          {
+            CTL_state = CTL_GREEN;// Change the state of CTL to enter next case
+          	CTL_GREEN_ENTRYMillis = millis();
+          }
+            break;
+
+    }
+}
