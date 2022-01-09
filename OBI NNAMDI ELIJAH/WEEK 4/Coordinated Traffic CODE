@@ -20,7 +20,8 @@ unsigned long CTL_GREEN_ENTRYMillis = 0;
 unsigned long CTL_YELLOW1_ENTRYMillis = 0;
 unsigned long CTL_YELLOW2_ENTRYMillis = 0;
 unsigned long CTL_RED_ENTRYMillis = 0;
-unsigned long PTL_GREEN_ENTRYMillis = 0;  
+unsigned long PTL_GREEN_ENTRYMillis = 0; 
+unsigned long Pb_EventMillis = 0; 
 
 // interval at which to change state (milliseconds)
 // constants won't change:
@@ -53,9 +54,10 @@ void setup()
 }
 
 void loop()
-{      
-  PTL();
+{  
   CTL();
+  PTL();
+  
 }
 
 void PTL()
@@ -118,7 +120,8 @@ void PTL()
 
  void triggerISR()
     {
-      Pb_Event=1;  
+      Pb_Event=1; 
+   Pb_EventMillis = millis(); // save the time just when interrupt changes state of Pb_Event 
     }
 
 
@@ -139,7 +142,8 @@ void CTL()
             digitalWrite(CTL_YELLOW1, LOW);
     		digitalWrite(CTL_YELLOW2, LOW);
             digitalWrite(CTL_RED, LOW);
-    if ((currentMillis - CTL_GREEN_ENTRYMillis >= Interval10Sec)&&(Pb_Event == 1)) // Wait for 20000 millisecond(s)  
+   			
+    if ((currentMillis - Pb_EventMillis >= Interval10Sec)&&(Pb_Event == 1)) // Wait for 20000 millisecond(s)  
    {	 
       CTL_state = CTL_YELLOW1;// Change the state of CTL to enter next case
    	  CTL_YELLOW1_ENTRYMillis = millis();
@@ -204,9 +208,8 @@ void CTL()
             CTL_state = CTL_GREEN;// Change the state of CTL to enter next case
           	CTL_GREEN_ENTRYMillis = millis();
           }
+    
             break;
 
     }
 }
-
-
