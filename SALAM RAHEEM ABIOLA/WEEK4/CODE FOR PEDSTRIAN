@@ -1,0 +1,160 @@
+//declearation
+
+#define redLedCTL 9
+#define yellowLedCTL 8
+#define greenLedCTL 7
+#define greenLedPTL 6
+#define redLedPTL 5
+#define BUTTON 3
+
+
+void setup() {
+  pinMode(greenLedPTL, OUTPUT);
+  pinMode(redLedPTL, OUTPUT);
+  pinMode(redLedCTL, OUTPUT);
+  pinMode(yellowLedCTL, OUTPUT);
+  pinMode(greenLedCTL, OUTPUT);
+  Serial.begin(9600);
+ 
+  pinMode(BUTTON, INPUT_PULLUP);//INTERUPT PIN INPEMENTATION
+  attachInterrupt(digitalPinToInterrupt(BUTTON), button_press, FALLING);
+  
+ 
+
+}
+//INITIALLIZING THE TRAFIC LIGHT
+
+  int run = true;
+  int state_change = 0 ;
+  bool PB_pressed = false;
+  bool ped_cross = false ;
+
+void Wait(int ms)
+{
+  ms == 1;
+  do
+  {
+    delayMicroseconds(1000);
+    ms--;
+  } while (ms > 0 && !PB_StateChange());
+}
+  enum state {greenStateCTL,yellowStateCTL,redStateCTL,greenStatePTL,redStatePTL};
+
+  void loop() {
+  switch (state_change)
+  {
+    case greenStateCTL:
+      digitalWrite(greenLedCTL, HIGH);
+      digitalWrite(yellowLedCTL, LOW);
+      digitalWrite(redLedCTL, LOW);
+      digitalWrite(redLedPTL, HIGH);
+      digitalWrite(greenLedPTL, LOW);
+      Wait(10000);
+      
+    if (PB_pressed== false) {
+        Wait(1000);
+        state_change =  yellowStateCTL;
+         run = true;
+      }
+    
+
+      break;
+
+    case yellowStateCTL:
+      
+      digitalWrite(greenLedCTL, LOW);
+      digitalWrite(yellowLedCTL, HIGH);
+      digitalWrite(greenLedPTL, LOW);
+      digitalWrite(redLedPTL, HIGH);
+      digitalWrite(redLedCTL, LOW);
+      //switching to state "TrafficStop"
+      if(run == true){
+        Wait(5000);
+        state_change = redStateCTL;
+      }
+
+      if(run == false){
+         Wait(5000);
+        state_change = greenStateCTL;
+      }
+
+      break;
+
+    case redStateCTL:  //CONTROL TRAFFIC LIGHT CHANGE TO RED
+
+      digitalWrite(yellowLedCTL, LOW);
+      digitalWrite(redLedCTL, HIGH);
+      digitalWrite(greenLedCTL, LOW);
+      
+      Wait(15000);
+
+     run = false;
+      
+      if (PB_pressed== false) {
+        
+        state_change = yellowStateCTL;
+      }
+      break;
+
+    case greenStatePTL:   //PEDESTRIAN TRAFFIC LIGHT CHANGE TO GREEN
+
+      digitalWrite(redLedCTL, HIGH);
+      digitalWrite(greenLedPTL, HIGH);
+      digitalWrite(redLedPTL, LOW);
+
+      Wait(10000);
+
+      if (PB_pressed== false) {
+      state_change =redStatePTL;
+      }
+      
+      break;
+
+    case redStatePTL:     //PEDESTRIAN TRAFFIC LIGHT CHANGE TO RED
+
+      digitalWrite(redLedPTL, HIGH);
+      digitalWrite(greenLedPTL, LOW);
+      digitalWrite(redLedCTL, HIGH);
+      
+     ped_cross = false;
+      
+      Wait(15000);
+
+      if (PB_pressed== false) {
+      state_change = yellowStateCTL;
+      }
+
+      break;
+
+
+  }
+
+}
+
+bool PB_StateChange()
+{
+  PB_pressed = false;
+  if (ped_cross&&(state_change == greenStateCTL) )
+  {
+    delay(1000);
+    
+    state_change =yellowStateCTL;
+    PB_pressed = true;
+  }
+
+  if ( ped_cross&&(state_change ==redStateCTL) )
+  {
+    delay(1000);
+   
+    state_change = greenStatePTL;
+    PB_pressed = true;
+  }
+  return PB_pressed;
+}
+
+void  button_press()
+{
+  ped_cross = true;
+  Serial.println("PB press");
+}
+
