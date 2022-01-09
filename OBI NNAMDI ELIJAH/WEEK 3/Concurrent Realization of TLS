@@ -1,0 +1,215 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+/* setting up the Pin names and pin number on Arduino*/
+#define     CTL_GREEN 13 
+#define     CTL_YELLOW1 12
+#define     CTL_YELLOW2 11
+#define     CTL_RED 10
+#define     PTL_GREEN 9
+#define     PTL_RED 8
+#define     PedButton 2
+#define 	WAITING 0
+
+//  Initializing a variable for state switch 
+int PTL_state = PTL_RED; 
+int CTL_state = CTL_GREEN;
+
+// This will store last time global state variable was updated
+unsigned long CTL_GREEN_ENTRYMillis = 0;  
+unsigned long CTL_YELLOW1_ENTRYMillis = 0;
+unsigned long CTL_YELLOW2_ENTRYMillis = 0;
+unsigned long CTL_RED_ENTRYMillis = 0;
+unsigned long PTL_GREEN_ENTRYMillis = 0; 
+unsigned long Pb_EventMillis = 0; 
+
+// interval at which to change state (milliseconds)
+// constants won't change:
+const long Interval20Sec = 20000;           
+const long Interval10Sec = 10000;
+const long Interval5Sec = 5000;
+
+volatile int Pb_Event = 0; /*Initializing a point to store the state of the Button*/
+
+void setup()
+{
+  			  //Pin Set-up
+                pinMode(PTL_RED, OUTPUT);
+                pinMode(PTL_GREEN, OUTPUT);
+  				pinMode(CTL_GREEN, OUTPUT);
+              	pinMode(CTL_YELLOW1, OUTPUT);
+              	pinMode(CTL_YELLOW2, OUTPUT);
+              	pinMode(CTL_RED, OUTPUT);
+                pinMode(PedButton, INPUT);
+
+              //Setting all PTL pins to Low
+                digitalWrite(PTL_RED, LOW);
+                digitalWrite(PTL_GREEN, LOW);
+              	digitalWrite(CTL_GREEN, LOW);
+                digitalWrite(CTL_YELLOW1, LOW);
+                digitalWrite(CTL_YELLOW2, LOW);
+                digitalWrite(CTL_RED, LOW);
+  
+  attachInterrupt(digitalPinToInterrupt(PedButton), triggerISR, RISING);
+}
+
+void loop()
+{  
+  CTL();
+  PTL();
+  
+}
+
+void PTL()
+{     
+    switch(PTL_state)
+ 
+    {
+    case PTL_RED:
+          delay(20);/*This very short delay is added to help the simulation software
+      			transition effortlessly*/
+      
+      	//CODE TO PUT ON LED
+            digitalWrite(PTL_RED, HIGH);
+            digitalWrite(PTL_GREEN, LOW);
+            
+        if(Pb_Event == 1) //CHECK FOR IF PedButton has been pushed
+            {
+                 //Change state of PTL to WAITING
+            PTL_state = WAITING;
+            }
+       break;
+
+            
+    case WAITING:
+          delay(20);/*This very short delay is added to help the simulation software
+      			transition effortlessly*/
+      
+      	//CODE TO PUT ON LED
+            digitalWrite(PTL_RED, HIGH);
+            digitalWrite(PTL_GREEN, LOW);
+        if(CTL_state == CTL_RED) // Check if CTL_state is in CTL_RED case 
+        {
+           //change state of PTL to PTL_GREEN
+             PTL_state = PTL_GREEN;
+          PTL_GREEN_ENTRYMillis = millis(); //capture the time entry into case: 
+          								   //PTL_GREEN	
+        }
+      break;
+
+            
+    case PTL_GREEN:
+          delay(2000);/*This very short delay is added to help the simulation software
+      			transition effortlessly*/
+	
+        //CODE TO PUT ON LED
+            digitalWrite(PTL_RED, LOW);
+            digitalWrite(PTL_GREEN, HIGH);
+
+      unsigned long currentMillis = millis();
+      if(currentMillis >= Interval20Sec)
+      {Pb_Event=0;}  //RESETTING Pb_Event
+      if ((currentMillis - PTL_GREEN_ENTRYMillis >= Interval20Sec)&&(Pb_Event==0)) 
+      { 
+        PTL_state = PTL_RED; 
+      }
+      break;
+
+    }
+}
+
+ void triggerISR()
+    {
+      Pb_Event=1; 
+   Pb_EventMillis = millis(); // save the time just when interrupt changes state of Pb_Event 
+    }
+
+
+void CTL()
+{
+  unsigned long currentMillis = millis();
+  
+  switch(CTL_state)
+      
+    {
+ 
+ 	  case CTL_GREEN: 
+          delay(20);/*This very short delay is added to help the simulation software
+      			transition effortlessly*/
+    
+    //CODE TO PUT ON LED
+      		digitalWrite(CTL_GREEN, HIGH);
+            digitalWrite(CTL_YELLOW1, LOW);
+    		digitalWrite(CTL_YELLOW2, LOW);
+            digitalWrite(CTL_RED, LOW);
+   			
+    if ((currentMillis - Pb_EventMillis >= Interval10Sec)&&(Pb_Event == 1)) // Wait for 20000 millisecond(s)  
+   {	 
+      CTL_state = CTL_YELLOW1;// Change the state of CTL to enter next case
+   	  CTL_YELLOW1_ENTRYMillis = millis();
+   }	
+    
+   else if ((currentMillis - CTL_GREEN_ENTRYMillis >= Interval20Sec)&&(Pb_Event == 0)) // Wait for 20000 millisecond(s)  
+   {	 
+      CTL_state = CTL_YELLOW1;// Change the state of CTL to enter next case
+   	  CTL_YELLOW1_ENTRYMillis = millis();
+   }		
+     break;
+            
+                  
+       case CTL_YELLOW1:
+              delay(20);/*This very short delay is added to help the simulation software
+      			transition effortlessly*/
+    //CODE TO PUT ON LED
+    
+            digitalWrite(CTL_GREEN, LOW);
+            digitalWrite(CTL_YELLOW1, HIGH);
+    		digitalWrite(CTL_YELLOW2, LOW);
+            digitalWrite(CTL_RED, LOW);
+ 
+            if ((currentMillis - CTL_YELLOW1_ENTRYMillis >= Interval10Sec))// Wait for 10000 millisecond(s)
+            {
+              CTL_state = CTL_RED; // Change the state of CTL to enter next case
+              CTL_RED_ENTRYMillis = millis();
+            }
+     break;
+            
+    
+        case CTL_RED:
+             delay(20);/*This very short delay is added to help the simulation software
+      			transition effortlessly*/
+    //CODE TO PUT ON LED
+    
+            digitalWrite(CTL_GREEN, LOW);
+            digitalWrite(CTL_YELLOW1, LOW);
+    		digitalWrite(CTL_YELLOW2, LOW);
+            digitalWrite(CTL_RED, HIGH);
+    
+            if ((currentMillis - CTL_RED_ENTRYMillis >= Interval20Sec) && (Pb_Event == 0))// Wait for 20000 millisecond(s)
+            {
+              CTL_state = CTL_YELLOW2;// Change the state of CTL to enter next case
+              CTL_YELLOW2_ENTRYMillis = millis();
+            }
+     break;
+
+            
+        case CTL_YELLOW2:
+              delay(20);/*This very short delay is added to help the simulation software
+      			transition effortlessly*/
+    //CODE TO PUT ON LED
+    
+            digitalWrite(CTL_GREEN, LOW);
+    		digitalWrite(CTL_YELLOW1, LOW);
+            digitalWrite(CTL_YELLOW2, HIGH);
+            digitalWrite(CTL_RED, LOW);
+    
+          if ((currentMillis - CTL_YELLOW2_ENTRYMillis >= Interval10Sec)) // Wait for 10000 millisecond(s)
+          {
+            CTL_state = CTL_GREEN;// Change the state of CTL to enter next case
+          	CTL_GREEN_ENTRYMillis = millis();
+          }
+    
+            break;
+
+    }
+}
