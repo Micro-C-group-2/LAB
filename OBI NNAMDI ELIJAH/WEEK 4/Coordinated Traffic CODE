@@ -5,7 +5,7 @@
 #define     CTL_GREEN 13 
 #define     CTL_YELLOW1 12
 #define     CTL_YELLOW2 11
-#define 	CTL_RED 10
+#define     CTL_RED 10
 #define     PTL_GREEN 9
 #define     PTL_RED 8
 #define     PedButton 2
