@@ -1,0 +1,160 @@
+#define green_Trafficlight 10
+#define yellow_Trafficlight 8
+#define red_Trafficlight 4
+
+#define green_Pedlight 7
+#define red_Pedlight 6
+#define BUTTON 2
+int DELAY_GREEN = 5000;
+int DELAY_YELLOW = 2000;
+int DELAY_RED = 5000;
+int DELAY_GREENPL = 5000;
+int DELAY_REDPL = 2000;
+
+int run = 0;
+int state = 0 ;
+bool pressbutton = 0;
+bool ped = 0, leave = 0;
+
+void setup() {
+  // choosing the connected LED´s
+  Serial.begin(115200);
+  pinMode(red_Trafficlight, OUTPUT);
+  pinMode(yellow_Trafficlight, OUTPUT);
+  pinMode(green_Trafficlight, OUTPUT);
+  pinMode(green_Pedlight, OUTPUT);
+  pinMode(red_Pedlight, OUTPUT);
+  pinMode(2, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(2), Pedestrian, FALLING);
+
+}
+
+//starting with the initial state for the traffic light system "TrafficFLow"
+//in this case the traffic light has green light for cars
+
+enum traffic_light_status
+{greenCTL, yellowCTL, redCTL, greenPTL, redPTL};
+void loop() {
+  switch (state)
+  {
+    case greenCTL:
+      // 10 seconds where the initial state stands
+      digitalWrite(green_Trafficlight, HIGH);
+      digitalWrite(yellow_Trafficlight, LOW);
+      digitalWrite(red_Trafficlight, LOW);
+      digitalWrite(red_Pedlight, HIGH);
+      digitalWrite(green_Pedlight, LOW);
+      
+      delay(DELAY_GREEN);
+      
+      run = 1;
+      
+      if (!pressbutton) {
+        delay(DELAY_RED);
+        state = yellowCTL;
+      }
+
+      break;
+
+    case yellowCTL:
+
+      //traffic light changes to yellow
+
+      digitalWrite(green_Trafficlight, LOW);
+      digitalWrite(yellow_Trafficlight, HIGH);
+      digitalWrite(green_Pedlight, LOW);
+      digitalWrite(red_Pedlight, HIGH);
+
+      //switching to state "TrafficStop"
+      if(run == 1){
+        delay(DELAY_RED);
+        state = redCTL;
+      }
+
+      if(run == 0){
+         delay(DELAY_GREEN);
+        state = greenCTL;
+      }
+
+      break;
+
+    case redCTL:
+
+      //traffic light turns red
+
+      digitalWrite(yellow_Trafficlight, LOW);
+      digitalWrite(red_Trafficlight, HIGH);
+      digitalWrite(green_Trafficlight, LOW);
+      digitalWrite(yellow_Trafficlight, LOW);
+
+      delay(DELAY_RED);
+
+      run = 0;
+      
+      if (!pressbutton) {
+        
+        state = yellowCTL;
+      }
+      break;
+
+    case greenPTL:
+
+      digitalWrite(red_Trafficlight, HIGH);
+      digitalWrite(green_Pedlight, HIGH);
+      digitalWrite(red_Pedlight, LOW);
+
+      delay(DELAY_GREEN);
+
+      if (!pressbutton) {
+      state = redPTL;
+      }
+      
+      break;
+
+    case redPTL:
+
+      digitalWrite(red_Pedlight, HIGH);
+      digitalWrite(green_Pedlight, LOW);
+      digitalWrite(green_Trafficlight, HIGH);
+      
+      ped = 0;
+      
+      delay(DELAY_RED);
+
+      if (!pressbutton) {
+      state = yellowCTL;
+      }
+
+      break;
+
+
+  }
+}
+
+
+bool ButtonChange()
+{
+  pressbutton = 0;
+  if ((state == greenCTL) && ped)
+  {
+    delay(DELAY_GREEN);
+   
+    state = yellowCTL;
+    pressbutton = 1;
+  }
+
+  if ((state == redCTL) && ped)
+  {
+    delay(DELAY_GREEN);
+    
+    state = greenPTL;
+    pressbutton = 1;
+  }
+  return pressbutton;
+}
+
+void Pedestrian()
+{
+  ped = 1;
+  Serial.println("ped");
+}
