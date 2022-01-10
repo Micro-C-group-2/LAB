@@ -185,7 +185,7 @@ void CTL()
     		digitalWrite(CTL_YELLOW2, LOW);
             digitalWrite(CTL_RED, HIGH);
     
-            if ((currentMillis - CTL_RED_ENTRYMillis >= Interval20Sec) && (Pb_Event == 0))// Wait for 20000 millisecond(s)
+            if ((currentMillis - CTL_RED_ENTRYMillis >= Interval20Sec) && (Pb_Event == 0)&&(PTL_state == PTL_RED))// Wait for 20000 millisecond(s)
             {
               CTL_state = CTL_YELLOW2;// Change the state of CTL to enter next case
               CTL_YELLOW2_ENTRYMillis = millis();
